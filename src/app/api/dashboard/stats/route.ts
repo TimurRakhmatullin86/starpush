@@ -29,7 +29,7 @@ export async function GET() {
 
   const sent = requests.length;
   const opened = requests.filter(
-    (r) => r.status !== "sent" && r.status !== "delivered"
+    (r) => r.status !== "sent" && r.status !== "delivered" && r.status !== "failed"
   ).length;
   const reviews = requests.filter((r) => r.review).map((r) => r.review!);
   const positive = reviews.filter((r) => r.rating >= 4).length;

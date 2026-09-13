@@ -21,17 +21,27 @@ export async function POST(req: Request) {
   }
 
   const userId = (session.user as Record<string, unknown>).id as string;
-  const data = await req.json();
+
+  let data: Record<string, unknown>;
+  try {
+    data = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (!data.name || typeof data.name !== "string") {
+    return NextResponse.json({ error: "Name required" }, { status: 400 });
+  }
 
   const business = await prisma.business.create({
     data: {
       userId,
       name: data.name,
-      googlePlaceId: data.googlePlaceId || null,
-      googleReviewUrl: data.googleReviewUrl || null,
-      phone: data.phone || null,
-      smsTemplate: data.smsTemplate || null,
-      delayHours: data.delayHours || 2,
+      googlePlaceId: (data.googlePlaceId as string) || null,
+      googleReviewUrl: (data.googleReviewUrl as string) || null,
+      phone: (data.phone as string) || null,
+      smsTemplate: (data.smsTemplate as string) || null,
+      delayHours: typeof data.delayHours === "number" ? data.delayHours : 2,
     },
   });
 
@@ -45,7 +55,17 @@ export async function PUT(req: Request) {
   }
 
   const userId = (session.user as Record<string, unknown>).id as string;
-  const data = await req.json();
+
+  let data: Record<string, unknown>;
+  try {
+    data = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (!data.id || typeof data.id !== "string") {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 });
+  }
 
   const business = await prisma.business.findFirst({
     where: { id: data.id, userId },
@@ -57,13 +77,13 @@ export async function PUT(req: Request) {
   const updated = await prisma.business.update({
     where: { id: data.id },
     data: {
-      name: data.name ?? business.name,
-      googlePlaceId: data.googlePlaceId ?? business.googlePlaceId,
-      googleReviewUrl: data.googleReviewUrl ?? business.googleReviewUrl,
-      phone: data.phone ?? business.phone,
-      smsTemplate: data.smsTemplate ?? business.smsTemplate,
-      delayHours: data.delayHours ?? business.delayHours,
-      logoUrl: data.logoUrl ?? business.logoUrl,
+      name: (data.name as string) ?? business.name,
+      googlePlaceId: (data.googlePlaceId as string) ?? business.googlePlaceId,
+      googleReviewUrl: (data.googleReviewUrl as string) ?? business.googleReviewUrl,
+      phone: (data.phone as string) ?? business.phone,
+      smsTemplate: (data.smsTemplate as string) ?? business.smsTemplate,
+      delayHours: typeof data.delayHours === "number" ? data.delayHours : business.delayHours,
+      logoUrl: (data.logoUrl as string) ?? business.logoUrl,
     },
   });
 

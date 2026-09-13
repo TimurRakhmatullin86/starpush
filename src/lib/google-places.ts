@@ -1,5 +1,3 @@
-const API_KEY = process.env.GOOGLE_PLACES_API_KEY!;
-
 interface PlaceResult {
   placeId: string;
   name: string;
@@ -8,21 +6,29 @@ interface PlaceResult {
 }
 
 export async function searchPlaces(query: string): Promise<PlaceResult[]> {
-  const url = new URL(
-    "https://maps.googleapis.com/maps/api/place/textsearch/json"
+  const res = await fetch(
+    "https://places.googleapis.com/v1/places:searchText",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY!,
+        "X-Goog-FieldMask":
+          "places.id,places.displayName,places.formattedAddress,places.rating",
+      },
+      body: JSON.stringify({ textQuery: query, maxResultCount: 5 }),
+    }
   );
-  url.searchParams.set("query", query);
-  url.searchParams.set("key", API_KEY);
 
-  const res = await fetch(url.toString());
+  if (!res.ok) return [];
   const data = await res.json();
 
-  return (data.results || []).slice(0, 5).map(
+  return (data.places || []).map(
     (p: Record<string, unknown>) =>
       ({
-        placeId: p.place_id as string,
-        name: p.name as string,
-        address: p.formatted_address as string,
+        placeId: p.id as string,
+        name: (p.displayName as Record<string, string>)?.text ?? "",
+        address: (p.formattedAddress as string) ?? "",
         rating: p.rating as number | undefined,
       }) satisfies PlaceResult
   );

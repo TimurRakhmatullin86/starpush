@@ -12,10 +12,21 @@ export async function POST(req: Request) {
   }
 
   const userId = (session.user as Record<string, unknown>).id as string;
-  const { businessId, customers } = await req.json();
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { businessId, customers: rawCustomers } = body;
+  if (!businessId || !Array.isArray(rawCustomers)) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
 
   const business = await prisma.business.findFirst({
-    where: { id: businessId, userId },
+    where: { id: businessId as string, userId },
     include: { user: { include: { subscription: true } } },
   });
   if (!business) {
@@ -26,35 +37,43 @@ export async function POST(req: Request) {
   const limit = PLANS[plan].smsLimit;
   const month = new Date().toISOString().slice(0, 7);
   const usage = await prisma.sMSUsage.findUnique({
-    where: { businessId_month: { businessId, month } },
+    where: { businessId_month: { businessId: businessId as string, month } },
   });
   const remaining = limit - (usage?.count || 0);
 
-  const list = (customers as { name: string; phone: string }[]).slice(
-    0,
-    remaining
-  );
+  const validCustomers = rawCustomers
+    .filter(
+      (c): c is { name: string; phone: string } =>
+        typeof c === "object" &&
+        c !== null &&
+        typeof c.name === "string" &&
+        typeof c.phone === "string" &&
+        c.name.trim() !== "" &&
+        /^\+?\d{7,15}$/.test(c.phone.trim())
+    )
+    .slice(0, remaining);
+
   let successCount = 0;
 
-  for (const c of list) {
+  for (const c of validCustomers) {
     try {
+      const phone = c.phone.trim();
       let customer = await prisma.customer.findFirst({
-        where: { businessId, phone: c.phone },
+        where: { businessId: businessId as string, phone },
       });
       if (!customer) {
         customer = await prisma.customer.create({
-          data: { businessId, name: c.name, phone: c.phone },
+          data: { businessId: businessId as string, name: c.name.trim(), phone },
         });
       }
-      if (customer.optedOut) continue;
 
       const rr = await prisma.reviewRequest.create({
-        data: { customerId: customer.id, businessId, status: "sent" },
+        data: { customerId: customer.id, businessId: businessId as string, status: "sent" },
       });
 
       const link = `${process.env.NEXTAUTH_URL}/r/${rr.id}`;
-      const body = buildReviewSMS(c.name, business.name, link, business.smsTemplate);
-      const sid = await sendSMS(c.phone, body);
+      const smsBody = buildReviewSMS(c.name.trim(), business.name, link, business.smsTemplate);
+      const sid = await sendSMS(phone, smsBody);
 
       await prisma.reviewRequest.update({
         where: { id: rr.id },
@@ -66,11 +85,13 @@ export async function POST(req: Request) {
     }
   }
 
-  await prisma.sMSUsage.upsert({
-    where: { businessId_month: { businessId, month } },
-    create: { businessId, month, count: successCount },
-    update: { count: { increment: successCount } },
-  });
+  if (successCount > 0) {
+    await prisma.sMSUsage.upsert({
+      where: { businessId_month: { businessId: businessId as string, month } },
+      create: { businessId: businessId as string, month, count: successCount },
+      update: { count: { increment: successCount } },
+    });
+  }
 
-  return NextResponse.json({ sent: successCount, total: list.length });
+  return NextResponse.json({ sent: successCount, total: validCustomers.length });
 }

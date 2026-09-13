@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getStripe, PLANS, PlanKey } from "@/lib/stripe";
+import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -10,10 +11,26 @@ export async function POST(req: Request) {
   }
 
   const userId = (session.user as Record<string, unknown>).id as string;
-  const { plan } = await req.json();
 
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const plan = body.plan as string;
   if (!plan || !(plan in PLANS) || plan === "free") {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
+
+  const existing = await prisma.subscription.findUnique({ where: { userId } });
+  if (existing?.stripeSubId && existing.status === "active" && existing.plan !== "free") {
+    const portalSession = await getStripe().billingPortal.sessions.create({
+      customer: existing.stripeCustomerId!,
+      return_url: `${process.env.NEXTAUTH_URL}/billing`,
+    });
+    return NextResponse.json({ url: portalSession.url });
   }
 
   const priceId = PLANS[plan as PlanKey].priceId;

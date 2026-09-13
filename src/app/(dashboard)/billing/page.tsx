@@ -42,11 +42,12 @@ export default function BillingPage() {
   const [loading, setLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/business")
+    fetch("/api/stripe/subscription")
       .then((r) => r.json())
-      .then(() => {
-        // plan info comes from subscription, simplified for MVP
-      });
+      .then((data) => {
+        if (data.plan) setCurrentPlan(data.plan);
+      })
+      .catch(() => {});
   }, []);
 
   async function handleUpgrade(plan: string) {
@@ -61,14 +62,35 @@ export default function BillingPage() {
     const data = await res.json();
 
     if (data.url) {
-      window.location.href = data.url;
+      window.location.assign(data.url);
+    }
+    setLoading(null);
+  }
+
+  async function handleManage() {
+    setLoading("manage");
+    const res = await fetch("/api/stripe/portal", { method: "POST" });
+    const data = await res.json();
+    if (data.url) {
+      window.location.assign(data.url);
     }
     setLoading(null);
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Billing</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Billing</h2>
+        {currentPlan !== "free" && (
+          <button
+            onClick={handleManage}
+            disabled={loading !== null}
+            className="text-sm text-blue-600 hover:underline disabled:opacity-50"
+          >
+            Manage Subscription
+          </button>
+        )}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {plans.map((plan) => (
           <div

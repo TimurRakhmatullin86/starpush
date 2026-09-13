@@ -12,7 +12,28 @@ export async function POST(req: Request) {
   }
 
   const userId = (session.user as Record<string, unknown>).id as string;
-  const { businessId, customerName, customerPhone } = await req.json();
+
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { businessId, customerName, customerPhone } = body as {
+    businessId?: string;
+    customerName?: string;
+    customerPhone?: string;
+  };
+
+  if (!businessId || !customerName || !customerPhone) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  const phone = customerPhone.trim();
+  if (!/^\+?\d{7,15}$/.test(phone)) {
+    return NextResponse.json({ error: "Invalid phone number" }, { status: 400 });
+  }
 
   const business = await prisma.business.findFirst({
     where: { id: businessId, userId },
@@ -34,15 +55,12 @@ export async function POST(req: Request) {
   }
 
   let customer = await prisma.customer.findFirst({
-    where: { businessId, phone: customerPhone },
+    where: { businessId, phone },
   });
   if (!customer) {
     customer = await prisma.customer.create({
-      data: { businessId, name: customerName, phone: customerPhone },
+      data: { businessId, name: customerName, phone },
     });
-  }
-  if (customer.optedOut) {
-    return NextResponse.json({ error: "Customer opted out" }, { status: 400 });
   }
 
   const reviewRequest = await prisma.reviewRequest.create({
@@ -50,7 +68,7 @@ export async function POST(req: Request) {
   });
 
   const link = `${process.env.NEXTAUTH_URL}/r/${reviewRequest.id}`;
-  const body = buildReviewSMS(
+  const smsBody = buildReviewSMS(
     customerName,
     business.name,
     link,
@@ -58,7 +76,7 @@ export async function POST(req: Request) {
   );
 
   try {
-    const sid = await sendSMS(customerPhone, body);
+    const sid = await sendSMS(phone, smsBody);
     await prisma.reviewRequest.update({
       where: { id: reviewRequest.id },
       data: { smsSid: sid },

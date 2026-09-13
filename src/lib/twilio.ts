@@ -23,6 +23,22 @@ export async function sendSMS(to: string, body: string): Promise<string> {
   return message.sid;
 }
 
+export function validateTwilioRequest(
+  url: string,
+  body: string,
+  signature: string
+): boolean {
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  if (!authToken) return false;
+
+  const params: Record<string, string> = {};
+  for (const [k, v] of new URLSearchParams(body)) {
+    params[k] = v;
+  }
+
+  return twilio.validateRequest(authToken, signature, url, params);
+}
+
 export function buildReviewSMS(
   customerName: string,
   businessName: string,
@@ -35,5 +51,5 @@ export function buildReviewSMS(
       .replace("{business}", businessName)
       .replace("{link}", link);
   }
-  return `Hi ${customerName}! Thanks for choosing ${businessName}. Your opinion matters — it takes 30 seconds: ${link}`;
+  return `Hi ${customerName}! Thanks for choosing ${businessName}. Your opinion matters — it takes 30 seconds: ${link}\n\nReply STOP to opt out.`;
 }

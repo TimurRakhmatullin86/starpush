@@ -3,7 +3,18 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
-  const { email, password, name } = await req.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { email, password, name } = body as {
+    email?: string;
+    password?: string;
+    name?: string;
+  };
 
   if (!email || !password || !name) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });

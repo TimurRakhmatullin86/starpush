@@ -2,14 +2,22 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function POST(req: Request) {
-  const { requestId, rating, feedbackText } = await req.json();
+  let body: Record<string, unknown>;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
-  if (!requestId || !rating || rating < 1 || rating > 5) {
+  const { requestId, feedbackText } = body;
+  const rating = typeof body.rating === "number" ? body.rating : parseInt(String(body.rating));
+
+  if (!requestId || !Number.isInteger(rating) || rating < 1 || rating > 5) {
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
   }
 
   const request = await prisma.reviewRequest.findUnique({
-    where: { id: requestId },
+    where: { id: requestId as string },
     include: { business: true },
   });
   if (!request) {
@@ -17,7 +25,7 @@ export async function POST(req: Request) {
   }
 
   const existing = await prisma.review.findUnique({
-    where: { requestId },
+    where: { requestId: requestId as string },
   });
   if (existing) {
     return NextResponse.json({ error: "Already reviewed" }, { status: 409 });
@@ -26,15 +34,15 @@ export async function POST(req: Request) {
   const wentToGoogle = rating >= 4;
   const review = await prisma.review.create({
     data: {
-      requestId,
+      requestId: requestId as string,
       rating,
       wentToGoogle,
-      feedbackText: rating <= 3 ? feedbackText : null,
+      feedbackText: rating <= 3 && typeof feedbackText === "string" ? feedbackText : null,
     },
   });
 
   await prisma.reviewRequest.update({
-    where: { id: requestId },
+    where: { id: requestId as string },
     data: { status: wentToGoogle ? "reviewed" : "feedback" },
   });
 

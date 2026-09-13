@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import StarRating from "./StarRating";
 
 interface Props {
@@ -65,10 +66,13 @@ export default function ReviewLanding({
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white px-4">
       <div className="w-full max-w-md text-center py-12">
         {businessLogo && (
-          <img
+          <Image
             src={businessLogo}
             alt={businessName}
-            className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+            width={80}
+            height={80}
+            className="rounded-full mx-auto mb-4 object-cover"
+            unoptimized
           />
         )}
         <h1 className="text-2xl font-bold text-gray-900 mb-1">
