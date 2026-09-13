@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String         @map("password_hash")
+  name         String
+  createdAt    DateTime       @default(now()) @map("created_at")
+  businesses   Business[]
+  subscription Subscription?
+
+  @@map("users")
+}
+
+model Business {
+  id              String          @id @default(cuid())
+  userId          String          @map("user_id")
+  name            String
+  googlePlaceId   String?         @map("google_place_id")
+  googleReviewUrl String?         @map("google_review_url")
+  phone           String?
+  logoUrl         String?         @map("logo_url")
+  smsTemplate     String?         @map("sms_template")
+  delayHours      Int             @default(2) @map("delay_hours")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customers       Customer[]
+  reviewRequests  ReviewRequest[]
+  smsUsage        SMSUsage[]
+
+  @@map("businesses")
+}
+
+model Customer {
+  id             String          @id @default(cuid())
+  businessId     String          @map("business_id")
+  name           String
+  phone          String
+  email          String?
+  optedOut       Boolean         @default(false) @map("opted_out")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  business       Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  reviewRequests ReviewRequest[]
+
+  @@map("customers")
+}
+
+model ReviewRequest {
+  id         String   @id @default(cuid())
+  customerId String   @map("customer_id")
+  businessId String   @map("business_id")
+  sentAt     DateTime @default(now()) @map("sent_at")
+  smsSid     String?  @map("sms_sid")
+  status     String   @default("sent") // sent | delivered | opened | reviewed | feedback
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  review     Review?
+
+  @@map("review_requests")
+}
+
+model Review {
+  id            String        @id @default(cuid())
+  requestId     String        @unique @map("request_id")
+  rating        Int
+  wentToGoogle  Boolean       @default(false) @map("went_to_google")
+  feedbackText  String?       @map("feedback_text")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  request       ReviewRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model Subscription {
+  id               String   @id @default(cuid())
+  userId           String   @unique @map("user_id")
+  stripeCustomerId String?  @map("stripe_customer_id")
+  stripeSubId      String?  @map("stripe_sub_id")
+  plan             String   @default("free") // free | starter | growth | pro
+  status           String   @default("active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model SMSUsage {
+  id         String   @id @default(cuid())
+  businessId String   @map("business_id")
+  month      String   // "2026-09"
+  count      Int      @default(0)
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, month])
+  @@map("sms_usage")
+}

@@ -1,69 +1,122 @@
-import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div className="min-h-screen bg-white">
+      <header className="border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+          <h1 className="text-xl font-bold">
+            <span className="text-yellow-500">★</span> StarPush
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+          <div className="flex gap-4">
+            <Link
+              href="/login"
+              className="text-gray-600 hover:text-gray-900 text-sm"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Sign In
+            </Link>
+            <Link
+              href="/register"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              Get Started Free
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      <section className="max-w-4xl mx-auto px-4 py-24 text-center">
+        <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+          Get More 5-Star
+          <br />
+          Google Reviews
+        </h2>
+        <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          Automatically collect Google reviews from happy customers.
+          Intercept unhappy ones before they go public. Starting at{" "}
+          <span className="font-semibold text-gray-900">$19/month</span>.
+        </p>
+        <Link
+          href="/register"
+          className="inline-block bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg"
+        >
+          Start Free Trial — 10 SMS/month
+        </Link>
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+          <div className="p-6">
+            <div className="text-3xl mb-3">📱</div>
+            <h3 className="font-semibold text-gray-900 mb-2">
+              Send SMS After Visit
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Automatically text customers after their visit with a review
+              request link.
+            </p>
+          </div>
+          <div className="p-6">
+            <div className="text-3xl mb-3">⭐</div>
+            <h3 className="font-semibold text-gray-900 mb-2">
+              Smart Routing
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Happy customers (4-5 stars) go to Google. Unhappy ones (1-3
+              stars) send feedback directly to you.
+            </p>
+          </div>
+          <div className="p-6">
+            <div className="text-3xl mb-3">🛡️</div>
+            <h3 className="font-semibold text-gray-900 mb-2">
+              Protect Your Rating
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Negative feedback stays private. Fix issues before they become
+              public 1-star reviews.
+            </p>
+          </div>
         </div>
-      </main>
+      </section>
+
+      <section className="bg-gray-50 py-16">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h3 className="text-2xl font-bold text-gray-900 mb-8">
+            Birdeye costs $349/mo. Podium costs $399+.
+            <br />
+            StarPush starts at <span className="text-blue-600">$19/mo</span>.
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[
+              { name: "Free", price: "$0", desc: "10 SMS/month" },
+              { name: "Starter", price: "$19", desc: "100 SMS/month", highlight: true },
+              { name: "Growth", price: "$39", desc: "500 SMS/month" },
+              { name: "Pro", price: "$69", desc: "Unlimited" },
+            ].map((plan) => (
+              <div
+                key={plan.name}
+                className={`p-6 rounded-xl ${
+                  plan.highlight
+                    ? "bg-blue-600 text-white"
+                    : "bg-white border border-gray-200"
+                }`}
+              >
+                <p className="font-semibold">{plan.name}</p>
+                <p className="text-2xl font-bold my-2">{plan.price}</p>
+                <p
+                  className={`text-sm ${
+                    plan.highlight ? "text-blue-100" : "text-gray-500"
+                  }`}
+                >
+                  {plan.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer className="py-8 text-center text-sm text-gray-400">
+        &copy; {new Date().getFullYear()} StarPush. Built for local businesses.
+      </footer>
     </div>
   );
 }

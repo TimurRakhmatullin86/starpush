@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ★ StarPush
 
-## Getting Started
+**Automated Google review collection for local businesses — starting at $19/month.**
 
-First, run the development server:
+Birdeye costs $349/mo. Podium costs $399+. StarPush gives plumbers, dentists, barbers, and auto shops the same review automation for 18x less.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## How It Works
+
+```
+Customer visits your business
+        ↓
+Gets SMS 1-2 hours later: "How was your visit?"
+        ↓
+   ┌────┴────┐
+ 4-5 ★       1-3 ★
+   ↓           ↓
+→ Google    → Private feedback
+  Review      to business owner
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Happy customers** get directed to leave a Google review (1-click link).  
+**Unhappy customers** send feedback directly to you — it never reaches Google.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **SMS Review Requests** — Send via Twilio with customizable templates
+- **Smart Routing** — 4-5 stars → Google, 1-3 stars → private inbox
+- **Mobile Landing Page** — Sub-second load, tap-to-rate, zero friction
+- **Analytics Dashboard** — Sent/opened/reviewed/feedback + NPS score
+- **Bulk CSV Import** — Upload customer lists for mass outreach
+- **Google Places Integration** — Auto-generate review links
+- **Stripe Billing** — Free/Starter($19)/Growth($39)/Pro($69) tiers
+- **Opt-out Compliance** — Customers can reply STOP to unsubscribe
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework:** Next.js 14+ (App Router)
+- **Styling:** Tailwind CSS
+- **Database:** PostgreSQL + Prisma ORM
+- **Auth:** NextAuth.js (email/password)
+- **SMS:** Twilio
+- **Payments:** Stripe
+- **Places:** Google Places API
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Quick Start
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# Clone and install
+git clone https://github.com/timurua/starpush.git
+cd starpush
+npm install
 
-## Deploy on Vercel
+# Configure environment
+cp .env.example .env
+# Edit .env with your credentials
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Set up database
+npx prisma generate
+npx prisma db push
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Run development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | Random secret for JWT signing |
+| `NEXTAUTH_URL` | App URL (http://localhost:3000 for dev) |
+| `TWILIO_ACCOUNT_SID` | Twilio account SID |
+| `TWILIO_AUTH_TOKEN` | Twilio auth token |
+| `TWILIO_PHONE_NUMBER` | Twilio phone number for sending |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `STRIPE_STARTER_PRICE_ID` | Stripe price ID for Starter plan |
+| `STRIPE_GROWTH_PRICE_ID` | Stripe price ID for Growth plan |
+| `STRIPE_PRO_PRICE_ID` | Stripe price ID for Pro plan |
+| `GOOGLE_PLACES_API_KEY` | Google Places API key |
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── (auth)/login, register     # Auth pages
+│   ├── (dashboard)/               # Owner dashboard
+│   │   ├── overview/              # Stats overview
+│   │   ├── reviews/               # Positive reviews list
+│   │   ├── feedback/              # Negative feedback inbox
+│   │   ├── send/                  # Send SMS (single + bulk CSV)
+│   │   ├── analytics/             # Funnel + NPS
+│   │   ├── settings/              # Business config + Places search
+│   │   └── billing/               # Stripe plans
+│   ├── r/[id]/                    # Customer review landing page
+│   └── api/                       # All API routes
+├── components/
+│   ├── dashboard/                 # Sidebar, header, stat cards
+│   └── review-page/              # Star rating, landing page
+└── lib/                           # Twilio, Stripe, Prisma, Google Places
+```
+
+## Pricing
+
+| Plan | Price | SMS/month | Locations |
+|---|---|---|---|
+| Free | $0 | 10 | 1 |
+| Starter | $19 | 100 | 1 |
+| Growth | $39 | 500 | 3 |
+| Pro | $69 | Unlimited | Unlimited |
+
+## License
+
+MIT
